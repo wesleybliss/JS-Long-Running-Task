@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JavaScript Long Running Task : Test</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    
+    <h1 class="text-center">JavaScript Long Running Task : Test</h1>
+    
+    <div id="current">Current Item: None</div>
+    <div id="remaining">Remaining Items: -1</div>
+    
+    <div>
+        <p>Queue</p>
+        <ol id="queue"></ol>
+    </div>
+    
+    <div>
+        <p>Log</p>
+        <ol id="log"></ol>
+    </div>
+    
+    <!-- jQuery -->
+    <script type="text/javascript" src="//code.jquery.com/jquery.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    
+    <script type="text/javascript" src="js_long_task.js"></script>
+    <script type="text/javascript">//<![CDATA[
+        
+        var $currentItem, $remainingItems, $queue, $log;
+        
+        $(function() {
+            
+            $currentItem = $('#current');
+            $remainingItems = $('#remaining');
+            $queue = $('#queue');
+            $log = $('#log');
+            
+            var urls = [];
+            for ( var i = 0; i < 10; i++ ) {
+                urls.push( 'http://localhost/js-long-running-task/simulate_slow.php' );
+            }
+            
+            var tasks = [];
+            for ( var i in urls ) {
+                tasks.push({
+                    id: (i + 1),
+                    url: urls[i]
+                });
+            }
+            
+            var progress = function( iteration, item, remaining, queue ) {
+                item = item ? JSON.stringify(item) : 'Unknown';
+                $currentItem.html( 'Current Item: ' + item );
+                $remainingItems.html( 'Remaining Items: ' + remaining );
+                $queue.empty();
+                if ( queue ) {
+                    for ( var i in queue ) {
+                        $queue.append( '<li>' + JSON.stringify(queue[i]) + '</li>' );
+                    }
+                }
+            };
+            
+            var thread = new LongTask( tasks, progress, function( results ) {
+                console.log( '\n\n\n\nFINISHED' );
+                console.log( results );
+                console.log( '------------------------------\n\n\n\n' );
+                for ( var i in results ) {
+                    results[i] = JSON.stringify( results[i] );
+                }
+                $log.html('<li>' + results.join('</li><li>') + '</li>');
+            });
+            
+            thread.start( thread );
+            
+        });
+            
+    //]]></script>
+    
+</body>
+</html>
